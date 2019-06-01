@@ -210,57 +210,66 @@ function whoWin(state) // returns 'x' or 'o' or ''
 	return '';
 }
 
-function winCases(state) // [ cases_where_x_wins, cases_where_o_wins, no_winners_cases, total] = winCases(state)
+function winCases(state, distance = 1) // [ cases_where_x_wins, x_wins_distance_sum, cases_where_o_wins, o_wins_distance_sum, no_winners_cases, no_winners_distance_sum, total] = winCases(state)
 {
 
 	if(stateIsFull(state) == true)
 	{
 		var winner = whoWin(state);
-		return ( winner == 'x' ? [1,0,0,1] 
-			: ( winner == 'o' ? [0,1,0,1] 
-			: [0,0,1,1] ) );
+		return ( winner == 'x' ? [1,distance,0,0,0,0,1] 
+			: ( winner == 'o' ? [0,0,1,distance,0,0,1] 
+			: [0,0,0,0,1,distance,1] ) );
 	}
 	
-	var xSum = 0, oSum = 0, nSum = 0, tSum = 0;
+	var xSum=0, dxSum=0, oSum=0, doSum=0, nSum=0, dnSum=0, tSum=0;
 
 	forEachGap(state, function(c, l)
 	{
-		var x = 0, o = 0, n = 0, t = 0; //received values
-		[x,o,n,t] = winCases(stateX(state,c,l));
+		var x,dx,o,do_,n,dn,t; //received values
+		[x,dx,o,do_,n,dn,t] = winCases(stateX(state,c,l), distance + 1);
 		xSum += x;
+		dxSum += dx;
 		oSum += o;
-		nSum += n; 
+		doSum += do_;
+		nSum += n;
+		dnSum += dn;
 		tSum += t;
 
-		[x,o,n,t] = winCases(stateO(state,c,l));
+		[x,dx,o,do_,n,dn,t] = winCases(stateO(state,c,l), distance + 1);
 		xSum += x;
+		dxSum += dx;
 		oSum += o;
+		doSum += do_;
 		nSum += n;
+		dnSum += dn;
 		tSum += t;
 	});
 
-	return [xSum, oSum, nSum, tSum];
+	return [xSum, dxSum, oSum, doSum, nSum, dnSum, tSum];
 }
 
-function oLoseProbability(state) //probability to 'o' lose
+//probability to 'o' lose
+function oLoseProbability(state) //[probability, average_distance] = oLoseProbability(state) 
 {
-	var x=0, o=0, n=0, t=1;
-	[x,o,n,t] = winCases(state);
-	return (x+n)/t;
+	var x,dx,o,do_,n,dn,t; //received values
+	[x,dx,o,do_,n,dn,t] = winCases(state);
+	return [(x+n)/t, (dx+dn)/t];
 }
 
-function xWinProbability(state)	//probability to 'x' wins
-{
-	var x=0, o=0, n=0, t=1;
-	[x,o,n,t] = winCases(state);
-	return x/t;
+//probability to 'x' win
+function xWinProbability(state)	//[probability, average_distance] = xWinProbability(state) 
+{ 
+	var x,dx,o,do_,n,dn,t; //received values
+	[x,dx,o,do_,n,dn,t] = winCases(state);
+	return [x/t, dx/t];
 }
 
-function oWinProbability(state)	//probability to 'x' wins
+//probability to 'x' win
+function oWinProbability(state)	//[probability, average_distance] = oWinProbability(state) 
 {
-	var x=0, o=0, n=0, t=1;
-	[x,o,n,t] = winCases(state);
-	return o/t;
+	var x,dx,o,do_,n,dn,t; //received values
+	[x,dx,o,do_,n,dn,t] = winCases(state);
+	return [o/t, do_/t];
 }
 
 function bestX(state) // [col,lin] = bestX(state)
@@ -277,20 +286,59 @@ function bestX(state) // [col,lin] = bestX(state)
 				var nextMove = stateX(state,c,l);
 				if( whoWin(nextMove) == 'x')
 				{
+					console.log('case 0');
 					return [c,l];
 				}
 			}
 		}
 	}
 
-	//find the best move to X based in X win probability
+	// verify whether one of the next possible moves from the user will make X lose
+	// OBS: This naked for statement cannot be substituted by the forEachGap because of return use
+	for(var c=0; c<3; c++)
+	{
+		for(var l=0; l<3; l++)
+		{
+			if(state[c][l] == '')
+			{
+				var nextMove = stateO(state,c,l);
+				if( whoWin(nextMove) == 'o')
+				{
+					console.log('case 1');
+					return [c,l];
+				}
+			}
+		}
+	} 
+
+	//find the best move to X based in the ration of X win probability and O win probability
 	var bestXLoc = [-1,-1];
-	var bestXProb = 0;
+	var bestRatio = 0;
 
 	forEachGap(state,function(c,l)
 	{
-		var prob = xWinProbability(stateX(state,c,l));
-		if( prob > bestXProb)
+		var probx, probo /*,distx, disto*/;
+		[probx,NaN] = xWinProbability(stateX(state,c,l));
+		[probo,NaN] = oWinProbability(stateX(state,c,l));
+
+		var ratio = probx/probo;
+		console.log('x in ' + [c,l] + ': px/po=' + ratio);
+
+		if( ratio > bestRatio)
+		{
+			bestRatio = ratio;
+			bestXLoc = [c,l];
+		} 
+	});
+	
+	/*
+	var bestXProb = 0, bestXLoc = [-1,-1];
+	forEachGap(state,function(c,l)
+	{
+		var prob, dist;
+		[prob,dist] = xWinProbability(stateX(state,c,l));
+
+		if( prob/dist > bestXProb)
 		{
 			bestXProb = prob;
 			bestXLoc = [c,l];
@@ -304,21 +352,25 @@ function bestX(state) // [col,lin] = bestX(state)
 		//find the best move to X based in O lose probability
 		forEachGap(state,function(c,l)
 		{
-			var prob = oLoseProbability(stateX(state,c,l));
-			if( prob > bestXProb)
+			var prob, dist;
+			[prob,dist] = oLoseProbability(stateX(state,c,l));
+			if( prob/dist > bestXProb)
 			{
 				bestXProb = prob;
 				bestXLoc = [c,l];
 			}	
 		});
 	}
+	*/
 
 	return bestXLoc;
 }
 
-// =============================================
-// ============= Events ========================
-// =============================================
+// =======================================================
+// ============= Action Interface ========================
+// =======================================================
+
+
 
 // returns the column and the line where the hash was clicked
 function detectCL(x,y)	// [col,lin] = detectCL(x,y)
@@ -334,6 +386,7 @@ function detectEnd()
 	if( (currentState[0][0] == 'o' && currentState[1][1] == 'o' && currentState[2][2] == 'o') 
 		|| (currentState[0][0] == 'x' && currentState[1][1] == 'x' && currentState[2][2] == 'x') )
 	{
+		console.log('main diag');
 		gameEnd = true;
 		drawColorLine([0,0], [d*3,d*3], '#FF0000'); //diag line
 	}
@@ -341,6 +394,7 @@ function detectEnd()
 	if( (currentState[2][0] == 'o' && currentState[1][1] == 'o' && currentState[0][2] == 'o') 
 		|| (currentState[2][0] == 'x' && currentState[1][1] == 'x' && currentState[0][2] == 'x') )
 	{
+		console.log('diag');
 		gameEnd = true;
 		drawColorLine([d*3,0], [0,d*3], '#FF0000'); //diag line
 	}
@@ -351,6 +405,7 @@ function detectEnd()
 		if( (currentState[c][0] == 'x' && currentState[c][1] == 'x' && currentState[c][2] == 'x') 
 			|| (currentState[c][0] == 'o' && currentState[c][1] == 'o' && currentState[c][2] == 'o') )
 		{
+			console.log('column' + c);
 			gameEnd = true;
 			drawColorLine([d*c+d/2, 0], [d*c+d/2, d*3], '#FF0000') //vertical line
 		}
@@ -362,6 +417,7 @@ function detectEnd()
 		if( (currentState[0][l] == 'x' && currentState[1][l] == 'x' && currentState[2][l] == 'x')
 			|| (currentState[0][l] == 'o' && currentState[1][l] == 'o' && currentState[2][l] == 'o') )
 		{
+			console.log('line ' + l);
 			gameEnd = true;
 			drawColorLine([0, d*l+d/2],[d*3, d*l+d/2], '#FF0000'); //horizontal line
 		}
@@ -371,15 +427,33 @@ function detectEnd()
 }
 
 
+function firstXPlay(oc,ol) //random move 
+{
+	var xc,xl;
+
+	do
+	{
+		xc = (Math.random()*100|0)%3;
+		xl = (Math.random()*100|0)%3;
+		console.log("loop:" + [xc,xl]);
+	}while(xc == oc && xl == ol);
+	
+	return [xc,xl];
+}
+
+
 var stage = 0;
 var gameLocked = false; //mutex to timeout
+//var gameReseted = false; //true when the user has just requested a reset and has not made a move yet
+
 cv.addEventListener('click', function(e)
 {
 	if(gameLocked == true) return;
+	//if(gameReseted == true) gameReseted = false;
 
 	if(gameEnd == true)
 	{
-		alert('Game is over. Press F5 to replay');
+		alert('Game is over');
 		return;
 	}
 
@@ -393,27 +467,32 @@ cv.addEventListener('click', function(e)
 		//user play
 		currentState[c][l] = 'o';
 		drawState(currentState);
+		
+		// verify whether the 'o' win
+		detectEnd(); 
+		if(gameEnd == true) return; //stop the play if so
+		// --------------------------
+
 		gameLocked = true;
 
 		setTimeout(function() //delay
 		{
+			//verify whether the user has just requested a reset
+			//if(gameReseted == true) return;
+			// ---------------------------------------
+
 			//AI play
-			var xc, xl;
+			var xc = -1, xl = -1;
 			if(stage == 1) //first move
 			{
-				//if(c == 1 && l == 1) [xc,xl] = [0,0];
-				//else [xc,xl] = [1,1];
-				do
-				{
-					xc = (Math.random()*100|0)%3;
-					xl = (Math.random()*100|0)%3;
-					console.log("loop:" + [xc,xl]);
-				}while( xc == c && xl == l);
+				if(c == 1 && l == 1) [xc,xl] = firstXPlay(c,l);
+				else [xc,xl] = [1,1];
 			}
 			else [xc,xl] = bestX(currentState);	
 
 			console.log([xc,xl]);
-			currentState[xc][xl] = 'x';
+
+			if(xc != -1 && xl != -1) currentState[xc][xl] = 'x';
 
 			drawState(currentState);
 			detectEnd();
@@ -422,6 +501,16 @@ cv.addEventListener('click', function(e)
 		}, 100);
 	}	
 });
+
+function resetGame()
+{
+	location.reload();	
+}
+
+// Reset button
+var resetButton = document.getElementById('resetButton');
+resetButton.addEventListener('click', resetGame);
+
 
 
 // =============================================

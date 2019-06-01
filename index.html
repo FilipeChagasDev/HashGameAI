@@ -1,42 +1,68 @@
 <html>
 	<head>
 		<title>Hash Game AI - by Filipe Chagas </title>
-		<style>
-			*{
-				font-family: sans-serif;
-				color: #FFFFFF;
-				background: #OOAAFF;
-			}
-				
-			#myBody
-			{
-				background-color: #003355;
-			}
+		<link rel="stylesheet" href="gh-buttons.css">
+		<link rel="stylesheet" href="style.css">
+		
 
-			#infos
-			{
-			}
-			
-		</style>
+		<style type="text/css" src="bootstrap-social.css"></style>
 	</head>
 	<body id="myBody" >
 		<center>
 			<h1> Hash Game AI - by Filipe Chagas </h1>
-			<h3> First release </h3>
 			<p id="infos" > 
 				Click to put 'o' in a gap. </br>
 				Next, the AI will put 'x' in a gap. </br>
-				If you want to restart the game, reload the page (press F5). </br>
+				If you want to restart the game, reload the page (press F5 or click on the 'reload game' button). </br>
 
-				<p>
-					Follow me and give me stars on GitHub :) </br>
-					My GitHub profile: <a href="https://www.github.com/FilipeChagasDev"> github.com/FilipeChagasDev </a></br>
-					GitHub repository where it is hosted: <a href="https://github.com/FilipeChagasDev/HashGameAI"> github.com/FilipeChagasDev/HashGameAI </a>
+				<div class="darkDiv">
+					
+					<p><button class="button big icon reload" type="submit" id="resetButton"> reload game </button></p>
 
-				</p>
+					<div class="canvasDiv" >
+						<canvas id="cv" color="#FFFFFF" width="301" height="301"/>
+					</div>
+
+					<p>
+						<table  class="darkTable" style="width:90%" border="1px">
+
+							<tr>
+								<th>My GitHub profile</th>
+								<th>GitHub repository where it is hosted</th>
+							</tr>
+							<tr>
+								<th>
+									<a class="button icon user" href="https://www.github.com/FilipeChagasDev"> github.com/FilipeChagasDev </a> 
+								</th>
+								<th>
+									<a class="button" href="https://github.com/FilipeChagasDev/HashGameAI"> github.com/FilipeChagasDev/HashGameAI </a>
+								</th>
+							</tr>
+						</table>
+					</p>
+				</div>
+
 			</p>
-			<canvas id="cv" color="#FFFFFF" width="301" height="301"/>
-			<script src="script.js"></script>
+
+			
+			
+			<p><div style="width:60%">
+				<h2> How do it works ? </h2>
+				Whenever you make a move, the algorithm does an in-depth search for every possible end of the game from the current state, calculating agent probability of winning and the your probability of winning for every move that the agent can make after your move. The gap that the agent will choose to mark with X will always be the one that gives it the highest probability of winning or not losing.
+				<h4>But this algorithm can fail in the mission to always win. You can win the game.</h4>
+
+				The algorithm is done in JavaScript, and it is all contained in a single file. Do you want to take a look?
+
+				<p> 
+					<a class="button big" href="https://github.com/FilipeChagasDev/HashGameAI/blob/master/script.js">
+						view source code file
+					</a>
+				</p>
+
+			</div></p>
+
+			
 		</center>
+		<script src="script.js"></script>
 	</body>
 </html>
