@@ -286,7 +286,7 @@ function bestX(state) // [col,lin] = bestX(state)
 				var nextMove = stateX(state,c,l);
 				if( whoWin(nextMove) == 'x')
 				{
-					console.log('case 0');
+					console.log('AI found a way to win: ' + [c,l]);
 					return [c,l];
 				}
 			}
@@ -304,7 +304,7 @@ function bestX(state) // [col,lin] = bestX(state)
 				var nextMove = stateO(state,c,l);
 				if( whoWin(nextMove) == 'o')
 				{
-					console.log('case 1');
+					console.log('AI has found a way to prevent the user from winning: ' + [c,l]);
 					return [c,l];
 				}
 			}
@@ -312,6 +312,9 @@ function bestX(state) // [col,lin] = bestX(state)
 	} 
 
 	//find the best move to X based in the ration of X win probability and O win probability
+	console.log('Starting probability calculation...');
+	console.log('_ px = AI winning probability');
+	console.log('_ po = User winning probability');
 	var bestXLoc = [-1,-1];
 	var bestRatio = 0;
 
@@ -322,7 +325,7 @@ function bestX(state) // [col,lin] = bestX(state)
 		[probo,NaN] = oWinProbability(stateX(state,c,l));
 
 		var ratio = probx/probo;
-		console.log('x in ' + [c,l] + ': px/po=' + ratio);
+		console.log('_ if AI puts x in ' + [c,l] + ': px/po=' + ratio);
 
 		if( ratio > bestRatio)
 		{
@@ -330,6 +333,8 @@ function bestX(state) // [col,lin] = bestX(state)
 			bestXLoc = [c,l];
 		} 
 	});
+
+	console.log('_ The best px/po ratio found is: ' + bestRatio);
 	
 	/*
 	var bestXProb = 0, bestXLoc = [-1,-1];
@@ -386,7 +391,7 @@ function detectEnd()
 	if( (currentState[0][0] == 'o' && currentState[1][1] == 'o' && currentState[2][2] == 'o') 
 		|| (currentState[0][0] == 'x' && currentState[1][1] == 'x' && currentState[2][2] == 'x') )
 	{
-		console.log('main diag');
+		console.log('line formed in main diagonal');
 		gameEnd = true;
 		drawColorLine([0,0], [d*3,d*3], '#FF0000'); //diag line
 	}
@@ -394,7 +399,7 @@ function detectEnd()
 	if( (currentState[2][0] == 'o' && currentState[1][1] == 'o' && currentState[0][2] == 'o') 
 		|| (currentState[2][0] == 'x' && currentState[1][1] == 'x' && currentState[0][2] == 'x') )
 	{
-		console.log('diag');
+		console.log('line formed in secondary diagonal');
 		gameEnd = true;
 		drawColorLine([d*3,0], [0,d*3], '#FF0000'); //diag line
 	}
@@ -405,7 +410,7 @@ function detectEnd()
 		if( (currentState[c][0] == 'x' && currentState[c][1] == 'x' && currentState[c][2] == 'x') 
 			|| (currentState[c][0] == 'o' && currentState[c][1] == 'o' && currentState[c][2] == 'o') )
 		{
-			console.log('column' + c);
+			console.log('line formed in column=' + c);
 			gameEnd = true;
 			drawColorLine([d*c+d/2, 0], [d*c+d/2, d*3], '#FF0000') //vertical line
 		}
@@ -417,17 +422,21 @@ function detectEnd()
 		if( (currentState[0][l] == 'x' && currentState[1][l] == 'x' && currentState[2][l] == 'x')
 			|| (currentState[0][l] == 'o' && currentState[1][l] == 'o' && currentState[2][l] == 'o') )
 		{
-			console.log('line ' + l);
+			console.log('line formed in line=' + l);
 			gameEnd = true;
 			drawColorLine([0, d*l+d/2],[d*3, d*l+d/2], '#FF0000'); //horizontal line
 		}
 	}
 
-	if(stateIsFull(currentState) == true) gameEnd = true;
+	if(stateIsFull(currentState) == true)
+	{ 
+		console.log('all gaps were filled');
+		gameEnd = true;
+	}
 }
 
 
-function firstXPlay(oc,ol) //random move 
+function firstXMove(oc,ol) //random move 
 {
 	var xc,xl;
 
@@ -438,6 +447,20 @@ function firstXPlay(oc,ol) //random move
 		console.log("loop:" + [xc,xl]);
 	}while(xc == oc && xl == ol);
 	
+	console.log('AI randomly chose: ' + [xc,xl]);
+	return [xc,xl];
+}
+
+function randomMove()
+{
+	do
+	{
+		xc = (Math.random()*100|0)%3;
+		xl = (Math.random()*100|0)%3;
+		console.log("loop:" + [xc,xl]);
+	}while(currentState[xc] == '' && currentState[xl] == '');
+
+	console.log('AI randomly chose: ' + [xc,xl]);
 	return [xc,xl];
 }
 
@@ -465,6 +488,7 @@ cv.addEventListener('click', function(e)
 	if(currentState[c][l] == '')
 	{
 		//user play
+		console.log('User chose: ' + [c,l]);
 		currentState[c][l] = 'o';
 		drawState(currentState);
 		
@@ -485,14 +509,20 @@ cv.addEventListener('click', function(e)
 			var xc = -1, xl = -1;
 			if(stage == 1) //first move
 			{
-				if(c == 1 && l == 1) [xc,xl] = firstXPlay(c,l);
+				if(c == 1 && l == 1) [xc,xl] = firstXMove(c,l);
 				else [xc,xl] = [1,1];
 			}
 			else [xc,xl] = bestX(currentState);	
 
-			console.log([xc,xl]);
+			console.log('AI chose: ' + [xc,xl]);
 
 			if(xc != -1 && xl != -1) currentState[xc][xl] = 'x';
+			else 
+			{
+				console.log('it is no longer possible to have a winner for the game');
+				[xc,xl] = randomMove();
+				currentState[xc][xl] = 'x';
+			}
 
 			drawState(currentState);
 			detectEnd();
