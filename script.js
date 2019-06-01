@@ -439,15 +439,23 @@ function detectEnd()
 function firstXMove(oc,ol) //random move 
 {
 	var xc,xl;
-
-	do
+	if(oc != 1 && ol != 1)
 	{
-		xc = (Math.random()*100|0)%3;
-		xl = (Math.random()*100|0)%3;
-		console.log("loop:" + [xc,xl]);
-	}while(xc == oc && xl == ol);
+		//if the user not chose [1,1], the besy px/po ration value will aways stay in [1,1]
+		[xc,xl] = [1,1];
+	}
+	else
+	{
+		//if the user chose [1,1], the px/po ration value will be 0.4875 in [0,0] [0,2] [2,0] and [2,2]
+		do
+		{
+			xc = ((Math.random()*100|0)%2)*2; //returns 0 or 2
+			xl = ((Math.random()*100|0)%2)*2; //returns 0 or 2
+			console.log("loop:" + [xc,xl]);
+		}while(xc == oc && xl == ol);
+	}
 	
-	console.log('AI randomly chose: ' + [xc,xl]);
+	console.log('AI chose strategically: ' + [xc,xl]);
 	return [xc,xl];
 }
 
@@ -462,6 +470,11 @@ function randomMove()
 
 	console.log('AI randomly chose: ' + [xc,xl]);
 	return [xc,xl];
+}
+
+function antiSideMove()
+{
+
 }
 
 
@@ -509,8 +522,8 @@ cv.addEventListener('click', function(e)
 			var xc = -1, xl = -1;
 			if(stage == 1) //first move
 			{
-				if(c == 1 && l == 1) [xc,xl] = firstXMove(c,l);
-				else [xc,xl] = [1,1];
+				[xc,xl] = firstXMove(c,l);
+				//[xc,xl] = bestX(currentState);	
 			}
 			else [xc,xl] = bestX(currentState);	
 
