@@ -403,8 +403,9 @@ cv.addEventListener('click', function(e)
 				//else [xc,xl] = [1,1];
 				do
 				{
-					xc = (Math.random()|0)%3;
-					xl = (Math.random()|0)%3;
+					xc = (Math.random()*100|0)%3;
+					xl = (Math.random()*100|0)%3;
+					console.log("loop:" + [xc,xl]);
 				}while( xc == c && xl == l);
 			}
 			else [xc,xl] = bestX(currentState);	
