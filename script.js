@@ -366,6 +366,8 @@ function detectEnd()
 			drawColorLine([0, d*l+d/2],[d*3, d*l+d/2], '#FF0000'); //horizontal line
 		}
 	}
+
+	if(stateIsFull(currentState) == true) gameEnd = true;
 }
 
 
@@ -377,7 +379,7 @@ cv.addEventListener('click', function(e)
 
 	if(gameEnd == true)
 	{
-		alert('Game is end. Press F5 to replay');
+		alert('Game is over. Press F5 to replay');
 		return;
 	}
 
