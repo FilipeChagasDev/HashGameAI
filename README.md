@@ -1,2 +1,3 @@
-#Access the GitHub Page
-Link: https://filipechagasdev.github.io/HashGameAI
+# Access the GitHub Page
+
+https://filipechagasdev.github.io/HashGameAI
