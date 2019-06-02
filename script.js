@@ -418,7 +418,7 @@ function detectEnd()
 function firstXMove(oc,ol) //random move 
 {
 	var xc,xl;
-	if(oc != 1 && ol != 1)
+	if(!(oc == 1 && ol == 1))
 	{
 		//if the user not chose [1,1], the besy px/po ration value will aways stay in [1,1]
 		[xc,xl] = [1,1];
