@@ -317,7 +317,7 @@ function bestX(state) // [col,lin] = bestX(state)
 	console.log('_ po = User winning probability');
 	var bestXLoc = [-1,-1];
 	//var bestRatio = 0;
-	var bestDist = 0;
+	var bestDist = 1000000;
 	//var allRatios = [];
 
 	forEachGap(state,function(c,l)
@@ -329,7 +329,7 @@ function bestX(state) // [col,lin] = bestX(state)
 		var ratio = probx/(probo == 0 ? 1 : probo); //prevent 0/0
 		//allRatios.push([ratio,c,l]);
 
-		console.log('___ px=' + probx + ' _ po=' + probo);
+		//console.log('___ px=' + probx + ' _ po=' + probo);
 		console.log('_ if AI puts x in ' + [c,l] + ': px/po=' + ratio + ' distx=' + distx);
 
 		//if( ratio > bestRatio) bestRatio = ratio;
