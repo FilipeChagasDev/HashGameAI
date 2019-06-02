@@ -316,8 +316,9 @@ function bestX(state) // [col,lin] = bestX(state)
 	console.log('_ px = AI winning probability');
 	console.log('_ po = User winning probability');
 	var bestXLoc = [-1,-1];
-	var bestRatio = 0;
-	var allRatiosAndDists = [];
+	//var bestRatio = 0;
+	var bestDist = 0;
+	//var allRatios = [];
 
 	forEachGap(state,function(c,l)
 	{
@@ -326,20 +327,25 @@ function bestX(state) // [col,lin] = bestX(state)
 		[probo,NaN] = oWinProbability(stateX(state,c,l));
 
 		var ratio = probx/(probo == 0 ? 1 : probo); //prevent 0/0
-		allRatiosAndDists.push([ratio,distx,c,l]);
+		//allRatios.push([ratio,c,l]);
 
+		console.log('___ px=' + probx + ' _ po=' + probo);
 		console.log('_ if AI puts x in ' + [c,l] + ': px/po=' + ratio + ' distx=' + distx);
 
-		if( ratio > bestRatio) bestRatio = ratio;
+		//if( ratio > bestRatio) bestRatio = ratio;
+		if( distx < bestDist )
+		{
+			bestDist = distx;
+			bestXLoc = [c,l];
+		} 
 	});
 
-	var bestRatiosAndDists = allRatiosAndDists.filter((vec)=>(vec[0] == bestRatio));
-	var bestDist = bestRatiosAndDists[0];
-	bestRatiosAndDists.forEach((el, index, array)=>(el[1] < bestDist[1] ? bestDist = el : NaN)); //find min distance in bestRatiosAndDists
-	bestXLoc = [ bestDist[2], bestDist[3] ];
+	//var bestRatios = allRatios.filter((vec)=>(vec[0] == bestRatio));
+	//var randIndex = (Math.random()*100|0)%bestRatios.length;
+	//bestXLoc = [ bestRatios[randIndex][1], bestRatios[randIndex][2] ];
 
-
-	console.log('_ The best px/po ratio found is: ' + bestRatio);
+	//console.log('_ The best px/po ratio found is: ' + bestRatio);
+	console.log('_ The best dist found is: ' + bestDist);
 	
 	return bestXLoc;
 }
