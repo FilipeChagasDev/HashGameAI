@@ -325,7 +325,7 @@ function bestX(state) // [col,lin] = bestX(state)
 		[probx,distx] = xWinProbability(stateX(state,c,l));
 		[probo,NaN] = oWinProbability(stateX(state,c,l));
 
-		var ratio = probx/probo;
+		var ratio = probx/(probo == NaN ? 1 : probo); //prevent 0/0
 		allRatiosAndDists.push([ratio,distx,c,l]);
 
 		console.log('_ if AI puts x in ' + [c,l] + ': px/po=' + ratio + ' distx=' + distx);
