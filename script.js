@@ -439,7 +439,7 @@ function randomMove()
 		xc = (Math.random()*100|0)%3;
 		xl = (Math.random()*100|0)%3;
 		console.log("loop:" + [xc,xl]);
-	}while(currentState[xc] != '' && currentState[xl] != '');
+	}while(currentState[xc][xl] != '');
 
 	console.log('AI randomly chose: ' + [xc,xl]);
 	return [xc,xl];
