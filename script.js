@@ -317,57 +317,30 @@ function bestX(state) // [col,lin] = bestX(state)
 	console.log('_ po = User winning probability');
 	var bestXLoc = [-1,-1];
 	var bestRatio = 0;
+	var allRatiosAndDists = [];
 
 	forEachGap(state,function(c,l)
 	{
-		var probx, probo /*,distx, disto*/;
-		[probx,NaN] = xWinProbability(stateX(state,c,l));
+		var probx, probo, distx;
+		[probx,distx] = xWinProbability(stateX(state,c,l));
 		[probo,NaN] = oWinProbability(stateX(state,c,l));
 
 		var ratio = probx/probo;
-		console.log('_ if AI puts x in ' + [c,l] + ': px/po=' + ratio);
+		allRatiosAndDists.push([ratio,distx,c,l]);
 
-		if( ratio > bestRatio)
-		{
-			bestRatio = ratio;
-			bestXLoc = [c,l];
-		} 
+		console.log('_ if AI puts x in ' + [c,l] + ': px/po=' + ratio + ' distx=' + distx);
+
+		if( ratio > bestRatio) bestRatio = ratio;
 	});
+
+	var bestRatiosAndDists = allRatiosAndDists.filter((vec)=>(vec[0] == bestRatio));
+	var bestDist = bestRatiosAndDists[0];
+	bestRatiosAndDists.forEach((el, index, array)=>(el[1] < bestDist[1] ? bestDist = el : NaN)); //find min distance in bestRatiosAndDists
+	bestXLoc = [ bestDist[2], bestDist[3] ];
+
 
 	console.log('_ The best px/po ratio found is: ' + bestRatio);
 	
-	/*
-	var bestXProb = 0, bestXLoc = [-1,-1];
-	forEachGap(state,function(c,l)
-	{
-		var prob, dist;
-		[prob,dist] = xWinProbability(stateX(state,c,l));
-
-		if( prob/dist > bestXProb)
-		{
-			bestXProb = prob;
-			bestXLoc = [c,l];
-		} 
-	});
-	
-	var oWinProb = bestXProb != 0 ? oWinProbability(stateX(state,bestXLoc[0],bestXLoc[1])) : 0;
-
-	if(bestXProb == 0 || oWinProb > bestXProb) //if there are no cases where the X wins, use the O lose probability
-	{
-		//find the best move to X based in O lose probability
-		forEachGap(state,function(c,l)
-		{
-			var prob, dist;
-			[prob,dist] = oLoseProbability(stateX(state,c,l));
-			if( prob/dist > bestXProb)
-			{
-				bestXProb = prob;
-				bestXLoc = [c,l];
-			}	
-		});
-	}
-	*/
-
 	return bestXLoc;
 }
 
@@ -466,7 +439,7 @@ function randomMove()
 		xc = (Math.random()*100|0)%3;
 		xl = (Math.random()*100|0)%3;
 		console.log("loop:" + [xc,xl]);
-	}while(currentState[xc] == '' && currentState[xl] == '');
+	}while(currentState[xc] != '' && currentState[xl] != '');
 
 	console.log('AI randomly chose: ' + [xc,xl]);
 	return [xc,xl];
