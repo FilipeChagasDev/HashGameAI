@@ -210,12 +210,17 @@ function whoWin(state) // returns 'x' or 'o' or ''
 	return '';
 }
 
+//var xDistancesList = [];
+//var oDistancesList = [];
 function winCases(state, distance = 1) // [ cases_where_x_wins, x_wins_distance_sum, cases_where_o_wins, o_wins_distance_sum, no_winners_cases, no_winners_distance_sum, total] = winCases(state)
 {
 
-	if(stateIsFull(state) == true)
+	var winner = whoWin(state);
+	if(stateIsFull(state) == true || winner != '')
 	{
-		var winner = whoWin(state);
+		//if(winner == 'x') xDistancesList.push(distance);
+		//if(winner == 'o') oDistancesList.push(distance);
+
 		return ( winner == 'x' ? [1,distance,0,0,0,0,1] 
 			: ( winner == 'o' ? [0,0,1,distance,0,0,1] 
 			: [0,0,0,0,1,distance,1] ) );
@@ -249,28 +254,33 @@ function winCases(state, distance = 1) // [ cases_where_x_wins, x_wins_distance_
 }
 
 //probability to 'o' lose
-function oLoseProbability(state) //[probability, average_distance] = oLoseProbability(state) 
+/*function oLoseProbability(state) //[probability, average_distance] = oLoseProbability(state) 
 {
 	var x,dx,o,do_,n,dn,t; //received values
+	distancesList = [];
 	[x,dx,o,do_,n,dn,t] = winCases(state);
 	return [(x+n)/t, (dx+dn)/t];
-}
+}*/
 
 //probability to 'x' win
 function xWinProbability(state)	//[probability, average_distance] = xWinProbability(state) 
 { 
 	var x,dx,o,do_,n,dn,t; //received values
+	xDistancesList = [];
 	[x,dx,o,do_,n,dn,t] = winCases(state);
-	return [x/t, dx/t];
+	return [x/t, dx];
 }
 
 //probability to 'x' win
 function oWinProbability(state)	//[probability, average_distance] = oWinProbability(state) 
 {
 	var x,dx,o,do_,n,dn,t; //received values
+	oDistancesList = [];
 	[x,dx,o,do_,n,dn,t] = winCases(state);
-	return [o/t, do_/t];
+	return [o/t, do_];
 }
+
+var stage = 0;
 
 function bestX(state) // [col,lin] = bestX(state)
 {
@@ -316,7 +326,7 @@ function bestX(state) // [col,lin] = bestX(state)
 	console.log('_ px = AI winning probability');
 	console.log('_ po = User winning probability');
 	var bestXLoc = [-1,-1];
-	//var bestRatio = 0;
+	var bestRatio = 0;
 	var bestDist = 1000000;
 	//var allRatios = [];
 
@@ -332,12 +342,17 @@ function bestX(state) // [col,lin] = bestX(state)
 		//console.log('___ px=' + probx + ' _ po=' + probo);
 		console.log('_ if AI puts x in ' + [c,l] + ': px/po=' + ratio + ' distx=' + distx);
 
-		//if( ratio > bestRatio) bestRatio = ratio;
-		if( distx < bestDist )
+		if( ratio > bestRatio)
+		{
+			bestXLoc = [c,l];
+			bestRatio = ratio;
+		}
+
+		/*if( distx < bestDist )
 		{
 			bestDist = distx;
 			bestXLoc = [c,l];
-		} 
+		}*/
 	});
 
 	//var bestRatios = allRatios.filter((vec)=>(vec[0] == bestRatio));
@@ -457,7 +472,7 @@ function antiSideMove()
 }
 
 
-var stage = 0;
+
 var gameLocked = false; //mutex to timeout
 //var gameReseted = false; //true when the user has just requested a reset and has not made a move yet
 
