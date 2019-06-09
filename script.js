@@ -210,166 +210,55 @@ function whoWin(state) // returns 'x' or 'o' or ''
 	return '';
 }
 
-//var xDistancesList = [];
-//var oDistancesList = [];
-function winCases(state, distance = 1) // [ cases_where_x_wins, x_wins_distance_sum, cases_where_o_wins, o_wins_distance_sum, no_winners_cases, no_winners_distance_sum, total] = winCases(state)
-{
+const playerO = false;
+const playerX = true;
 
+function minmax(state, player)
+{
 	var winner = whoWin(state);
-	if(stateIsFull(state) == true || winner != '')
-	{
-		//if(winner == 'x') xDistancesList.push(distance);
-		//if(winner == 'o') oDistancesList.push(distance);
+	if(winner != '' || stateIsFull(state)) return (winner == '' ? [0,NaN,NaN] : (winner == 'x' ? [1,NaN,NaN] : [-1,NaN,NaN]) );
 
-		return ( winner == 'x' ? [1,distance,0,0,0,0,1] 
-			: ( winner == 'o' ? [0,0,1,distance,0,0,1] 
-			: [0,0,0,0,1,distance,1] ) );
+	if(player == playerO)
+	{
+		var maxFound = -2;
+		var c_found, l_found;
+
+		forEachGap(state,function(c,l)
+		{
+			var currentV, currentC, currentL;
+			[currentV, NaN, NaN] = minmax(stateX(state,c,l), !player);
+			if(currentV > maxFound) [maxFound, c_found, l_found] = [currentV, c, l];
+		});
+
+		return [maxFound, c_found, l_found];
 	}
-	
-	var xSum=0, dxSum=0, oSum=0, doSum=0, nSum=0, dnSum=0, tSum=0;
-
-	forEachGap(state, function(c, l)
+	else //if(player == playerX)
 	{
-		var x,dx,o,do_,n,dn,t; //received values
-		[x,dx,o,do_,n,dn,t] = winCases(stateX(state,c,l), distance + 1);
-		xSum += x;
-		dxSum += dx;
-		oSum += o;
-		doSum += do_;
-		nSum += n;
-		dnSum += dn;
-		tSum += t;
+		var minFound = 2;
+		var c_found, l_found;
 
-		[x,dx,o,do_,n,dn,t] = winCases(stateO(state,c,l), distance + 1);
-		xSum += x;
-		dxSum += dx;
-		oSum += o;
-		doSum += do_;
-		nSum += n;
-		dnSum += dn;
-		tSum += t;
-	});
+		forEachGap(state,function(c,l)
+		{
+			var currentV, currentC, currentL;
+			[currentV, NaN, NaN] = minmax(stateO(state,c,l), !player);
+			if(currentV < minFound) [minFound, c_found, l_found] = [currentV, c, l];
+		});
 
-	return [xSum, dxSum, oSum, doSum, nSum, dnSum, tSum];
+		return [minFound, c_found, l_found];
+	}
+
 }
-
-//probability to 'o' lose
-/*function oLoseProbability(state) //[probability, average_distance] = oLoseProbability(state) 
-{
-	var x,dx,o,do_,n,dn,t; //received values
-	distancesList = [];
-	[x,dx,o,do_,n,dn,t] = winCases(state);
-	return [(x+n)/t, (dx+dn)/t];
-}*/
-
-//probability to 'x' win
-function xWinProbability(state)	//[probability, average_distance] = xWinProbability(state) 
-{ 
-	var x,dx,o,do_,n,dn,t; //received values
-	xDistancesList = [];
-	[x,dx,o,do_,n,dn,t] = winCases(state);
-	return [x/t, dx];
-}
-
-//probability to 'x' win
-function oWinProbability(state)	//[probability, average_distance] = oWinProbability(state) 
-{
-	var x,dx,o,do_,n,dn,t; //received values
-	oDistancesList = [];
-	[x,dx,o,do_,n,dn,t] = winCases(state);
-	return [o/t, do_];
-}
-
-var stage = 0;
 
 function bestX(state) // [col,lin] = bestX(state)
-{
-	
-	//verify whether one of the next possible moves will make X wins
-	// OBS: This naked for statement cannot be substituted by the forEachGap because of return use 
-	for(var c=0; c<3; c++)
-	{
-		for(var l=0; l<3; l++)
-		{
-			if(state[c][l] == '')
-			{
-				var nextMove = stateX(state,c,l);
-				if( whoWin(nextMove) == 'x')
-				{
-					console.log('AI found a way to win: ' + [c,l]);
-					return [c,l];
-				}
-			}
-		}
-	}
-
-	// verify whether one of the next possible moves from the user will make X lose
-	// OBS: This naked for statement cannot be substituted by the forEachGap because of return use
-	for(var c=0; c<3; c++)
-	{
-		for(var l=0; l<3; l++)
-		{
-			if(state[c][l] == '')
-			{
-				var nextMove = stateO(state,c,l);
-				if( whoWin(nextMove) == 'o')
-				{
-					console.log('AI has found a way to prevent the user from winning: ' + [c,l]);
-					return [c,l];
-				}
-			}
-		}
-	} 
-
-	//find the best move to X based in the ration of X win probability and O win probability
-	console.log('Starting probability calculation...');
-	console.log('_ px = AI winning probability');
-	console.log('_ po = User winning probability');
-	var bestXLoc = [-1,-1];
-	var bestRatio = 0;
-	var bestDist = 1000000;
-	//var allRatios = [];
-
-	forEachGap(state,function(c,l)
-	{
-		var probx, probo, distx;
-		[probx,distx] = xWinProbability(stateX(state,c,l));
-		[probo,NaN] = oWinProbability(stateX(state,c,l));
-
-		var ratio = probx/(probo == 0 ? 1 : probo); //prevent 0/0
-		//allRatios.push([ratio,c,l]);
-
-		//console.log('___ px=' + probx + ' _ po=' + probo);
-		console.log('_ if AI puts x in ' + [c,l] + ': px/po=' + ratio + ' distx=' + distx);
-
-		if( ratio > bestRatio)
-		{
-			bestXLoc = [c,l];
-			bestRatio = ratio;
-		}
-
-		/*if( distx < bestDist )
-		{
-			bestDist = distx;
-			bestXLoc = [c,l];
-		}*/
-	});
-
-	//var bestRatios = allRatios.filter((vec)=>(vec[0] == bestRatio));
-	//var randIndex = (Math.random()*100|0)%bestRatios.length;
-	//bestXLoc = [ bestRatios[randIndex][1], bestRatios[randIndex][2] ];
-
-	//console.log('_ The best px/po ratio found is: ' + bestRatio);
-	console.log('_ The best dist found is: ' + bestDist);
-	
-	return bestXLoc;
+{	
+	var bestC, bestL;
+	[NaN, bestC, bestL] = minmax(state, playerO);
+	return [bestC, bestL];
 }
 
 // =======================================================
 // ============= Action Interface ========================
 // =======================================================
-
-
 
 // returns the column and the line where the hash was clicked
 function detectCL(x,y)	// [col,lin] = detectCL(x,y)
@@ -430,29 +319,6 @@ function detectEnd()
 }
 
 
-function firstXMove(oc,ol) //random move 
-{
-	var xc,xl;
-	if(!(oc == 1 && ol == 1))
-	{
-		//if the user not chose [1,1], the besy px/po ration value will aways stay in [1,1]
-		[xc,xl] = [1,1];
-	}
-	else
-	{
-		//if the user chose [1,1], the px/po ration value will be 0.4875 in [0,0] [0,2] [2,0] and [2,2]
-		do
-		{
-			xc = ((Math.random()*100|0)%2)*2; //returns 0 or 2
-			xl = ((Math.random()*100|0)%2)*2; //returns 0 or 2
-			console.log("loop:" + [xc,xl]);
-		}while(xc == oc && xl == ol);
-	}
-	
-	console.log('AI chose strategically: ' + [xc,xl]);
-	return [xc,xl];
-}
-
 function randomMove()
 {
 	do
@@ -466,20 +332,11 @@ function randomMove()
 	return [xc,xl];
 }
 
-function antiSideMove()
-{
-
-}
-
-
-
 var gameLocked = false; //mutex to timeout
-//var gameReseted = false; //true when the user has just requested a reset and has not made a move yet
 
 cv.addEventListener('click', function(e)
 {
 	if(gameLocked == true) return;
-	//if(gameReseted == true) gameReseted = false;
 
 	if(gameEnd == true)
 	{
@@ -487,7 +344,6 @@ cv.addEventListener('click', function(e)
 		return;
 	}
 
-	stage++;
 	var x = e.pageX - cv.offsetLeft;
 	var y = e.pageY - cv.offsetTop;
 	var c,l;
@@ -514,19 +370,12 @@ cv.addEventListener('click', function(e)
 
 			//AI play
 			var xc = -1, xl = -1;
-			if(stage == 1) //first move
-			{
-				[xc,xl] = firstXMove(c,l);
-				//[xc,xl] = bestX(currentState);	
-			}
-			else [xc,xl] = bestX(currentState);	
-
+			[xc,xl] = bestX(currentState);	
 			console.log('AI chose: ' + [xc,xl]);
 
 			if(xc != -1 && xl != -1) currentState[xc][xl] = 'x';
 			else 
 			{
-				console.log('it is no longer possible to have a winner for the game');
 				[xc,xl] = randomMove();
 				currentState[xc][xl] = 'x';
 			}
