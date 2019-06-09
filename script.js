@@ -3,11 +3,6 @@
 	Nationality: Brazil
 	Email: filipe.ferraz0@gmail.com
 	GitHub: github.com/FilipeChagasDev
-
-	Algorithm description:
-		This is a simple IA algorithm based on deep searh and probability calculation.
-		The goal is to try to prevent, as far as possible, that the user wins the hash game.
-		To play the hash game, the user uses the 'o' symbol, and the AI uses the 'x' symbol.
 */
 
 // =============================================
@@ -25,6 +20,7 @@ function drawLine(pi,pf)
 	context.moveTo(pi[0],pi[1]);
 	context.lineTo(pf[0],pf[1]);
 	context.lineWidth = 5;
+	context.strokeStyle = '#000000';
 	context.stroke();
 }
 
@@ -91,6 +87,29 @@ function resetGrid()
 // =============================================
 
 var currentState = [ ['','',''], ['','',''], ['','',''] ]; //state[col][lin]
+var gameReseted = false;
+var gameEnd = false;
+
+function stateIsFull(state) // returns true or false
+{
+	for(var c=0; c<3; c++)
+	{
+		for(var l=0; l<3; l++)
+		{
+			if(state[c][l] == '') return false; 
+		}
+	}
+	return true;
+}
+
+
+function resetGame()
+{
+	currentState = [ ['','',''], ['','',''], ['','',''] ];
+	gameReseted = true;
+	gameEnd = false;
+	resetGrid();
+}
 
 function forEachGap(state, callback)
 {
@@ -105,7 +124,6 @@ function forEachGap(state, callback)
 		}
 	}
 }
-
 
 function cloneState(state)
 {
@@ -151,22 +169,6 @@ function drawState(state)
 	}
 }
 
-// =============================================
-// =============== AI agent ====================
-// =============================================
-
-function stateIsFull(state) // returns true or false
-{
-	for(var c=0; c<3; c++)
-	{
-		for(var l=0; l<3; l++)
-		{
-			if(state[c][l] == '') return false; 
-		}
-	}
-	return true;
-}
-
 function whoWin(state) // returns 'x' or 'o' or '' 
 {
 
@@ -209,6 +211,63 @@ function whoWin(state) // returns 'x' or 'o' or ''
 
 	return '';
 }
+
+function detectEnd()
+{
+	//diags
+	if( (currentState[0][0] == 'o' && currentState[1][1] == 'o' && currentState[2][2] == 'o') 
+		|| (currentState[0][0] == 'x' && currentState[1][1] == 'x' && currentState[2][2] == 'x') )
+	{
+		console.log('line formed in main diagonal');
+		gameEnd = true;
+		drawColorLine([0,0], [d*3,d*3], '#FF0000'); //diag line
+	}
+
+	if( (currentState[2][0] == 'o' && currentState[1][1] == 'o' && currentState[0][2] == 'o') 
+		|| (currentState[2][0] == 'x' && currentState[1][1] == 'x' && currentState[0][2] == 'x') )
+	{
+		console.log('line formed in secondary diagonal');
+		gameEnd = true;
+		drawColorLine([d*3,0], [0,d*3], '#FF0000'); //diag line
+	}
+
+	//cols
+	for(var c=0; c<3; c++)
+	{
+		if( (currentState[c][0] == 'x' && currentState[c][1] == 'x' && currentState[c][2] == 'x') 
+			|| (currentState[c][0] == 'o' && currentState[c][1] == 'o' && currentState[c][2] == 'o') )
+		{
+			console.log('line formed in column=' + c);
+			gameEnd = true;
+			drawColorLine([d*c+d/2, 0], [d*c+d/2, d*3], '#FF0000') //vertical line
+		}
+	}
+
+	//lines
+	for(var l=0; l<3; l++)
+	{
+		if( (currentState[0][l] == 'x' && currentState[1][l] == 'x' && currentState[2][l] == 'x')
+			|| (currentState[0][l] == 'o' && currentState[1][l] == 'o' && currentState[2][l] == 'o') )
+		{
+			console.log('line formed in line=' + l);
+			gameEnd = true;
+			drawColorLine([0, d*l+d/2],[d*3, d*l+d/2], '#FF0000'); //horizontal line
+		}
+	}
+
+	if(stateIsFull(currentState) == true)
+	{ 
+		console.log('all gaps were filled');
+		gameEnd = true;
+	}
+}
+
+
+// =============================================
+// =============== AI agent ====================
+// =============================================
+
+
 
 const playerO = false;
 const playerX = true;
@@ -266,57 +325,7 @@ function detectCL(x,y)	// [col,lin] = detectCL(x,y)
 	return [ x/d|0, y/d|0]; 
 }
 
-var gameEnd = false;
 
-function detectEnd()
-{
-	//diags
-	if( (currentState[0][0] == 'o' && currentState[1][1] == 'o' && currentState[2][2] == 'o') 
-		|| (currentState[0][0] == 'x' && currentState[1][1] == 'x' && currentState[2][2] == 'x') )
-	{
-		console.log('line formed in main diagonal');
-		gameEnd = true;
-		drawColorLine([0,0], [d*3,d*3], '#FF0000'); //diag line
-	}
-
-	if( (currentState[2][0] == 'o' && currentState[1][1] == 'o' && currentState[0][2] == 'o') 
-		|| (currentState[2][0] == 'x' && currentState[1][1] == 'x' && currentState[0][2] == 'x') )
-	{
-		console.log('line formed in secondary diagonal');
-		gameEnd = true;
-		drawColorLine([d*3,0], [0,d*3], '#FF0000'); //diag line
-	}
-
-	//cols
-	for(var c=0; c<3; c++)
-	{
-		if( (currentState[c][0] == 'x' && currentState[c][1] == 'x' && currentState[c][2] == 'x') 
-			|| (currentState[c][0] == 'o' && currentState[c][1] == 'o' && currentState[c][2] == 'o') )
-		{
-			console.log('line formed in column=' + c);
-			gameEnd = true;
-			drawColorLine([d*c+d/2, 0], [d*c+d/2, d*3], '#FF0000') //vertical line
-		}
-	}
-
-	//lines
-	for(var l=0; l<3; l++)
-	{
-		if( (currentState[0][l] == 'x' && currentState[1][l] == 'x' && currentState[2][l] == 'x')
-			|| (currentState[0][l] == 'o' && currentState[1][l] == 'o' && currentState[2][l] == 'o') )
-		{
-			console.log('line formed in line=' + l);
-			gameEnd = true;
-			drawColorLine([0, d*l+d/2],[d*3, d*l+d/2], '#FF0000'); //horizontal line
-		}
-	}
-
-	if(stateIsFull(currentState) == true)
-	{ 
-		console.log('all gaps were filled');
-		gameEnd = true;
-	}
-}
 
 
 function randomMove()
@@ -336,6 +345,7 @@ var gameLocked = false; //mutex to timeout
 
 cv.addEventListener('click', function(e)
 {
+	gameReseted = false;
 	if(gameLocked == true) return;
 
 	if(gameEnd == true)
@@ -365,8 +375,8 @@ cv.addEventListener('click', function(e)
 		setTimeout(function() //delay
 		{
 			//verify whether the user has just requested a reset
-			//if(gameReseted == true) return;
-			// ---------------------------------------
+			if(gameReseted == true) return;
+			//---------------------------------------
 
 			//AI play
 			var xc = -1, xl = -1;
@@ -388,10 +398,6 @@ cv.addEventListener('click', function(e)
 	}	
 });
 
-function resetGame()
-{
-	location.reload();	
-}
 
 // Reset button
 var resetButton = document.getElementById('resetButton');
