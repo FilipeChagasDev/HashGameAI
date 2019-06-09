@@ -3,11 +3,6 @@
 	Nationality: Brazil
 	Email: filipe.ferraz0@gmail.com
 	GitHub: github.com/FilipeChagasDev
-
-	Algorithm description:
-		This is a simple IA algorithm based on deep searh and probability calculation.
-		The goal is to try to prevent, as far as possible, that the user wins the hash game.
-		To play the hash game, the user uses the 'o' symbol, and the AI uses the 'x' symbol.
 */
 
 // =============================================
@@ -25,6 +20,7 @@ function drawLine(pi,pf)
 	context.moveTo(pi[0],pi[1]);
 	context.lineTo(pf[0],pf[1]);
 	context.lineWidth = 5;
+	context.strokeStyle = '#000000';
 	context.stroke();
 }
 
